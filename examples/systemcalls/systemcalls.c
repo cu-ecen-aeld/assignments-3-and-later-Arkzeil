@@ -1,4 +1,13 @@
 #include "systemcalls.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,6 +25,8 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    if(system(cmd) < 0)
+        return false;
 
     return true;
 }
@@ -58,7 +69,26 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    int exit_status;
+    int wait_status;
+    pid_t PID = fork();
 
+    if(PID == -1) // fork fail
+        return false;
+    if(PID == 0){ // child process
+        if(execv(command[0], command) == -1){
+            perror("execv:");
+            exit(1); // unnormal quit
+        }
+    }
+    else{ // parent process, return value is the PID of child process
+        wait_status = waitpid(PID, &exit_status, 0); // wait(NULL), same as 'waitpid(-1, NULL, 0).', wait for any child process
+
+        if(wait_status == -1) // waitpid fail
+            return false;
+        if(WEXITSTATUS(exit_status) != 0) // exec fail
+            return false;
+    }
     va_end(args);
 
     return true;
@@ -92,6 +122,31 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int exit_status;
+    int wait_status;
+    pid_t PID = fork();
+    int fd = open(outputfile, O_WRONLY);
+
+    if(PID == -1) // fork fail
+        return false;
+    if(PID == 0){ // child process
+        if (dup2(fd, 1) < 0){ // make fd1(stdout) pointed to fd 
+            perror("dup2:");
+            exit(1); // unnormal quit
+        }
+        if(execv(command[0], command) == -1){
+            perror("execv:");
+            exit(1); // unnormal quit
+        }
+    }        
+    else{ // parent process, return value is the PID of child process
+        wait_status = waitpid(PID, &exit_status, 0); // wait(NULL), same as 'waitpid(-1, NULL, 0).', wait for any child process
+        
+        if(wait_status == -1) // waitpid fail
+            return false;
+        if(WEXITSTATUS(exit_status) != 0) // exec fail
+            return false;
+    }
 
     va_end(args);
 
