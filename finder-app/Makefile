@@ -5,6 +5,8 @@ C_FLAG = -g -Wall
 TARGET = writer.c
 OBJECT = wrter.o
 EXE = writer
+# need this one
+CROSS_COMPILE = aarch64-none-linux-gnu-
 
 # if user provide CROSS_COMPILE=aarch64-none-linux-gnu-
 # must have a space after ifeq

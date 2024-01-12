@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # AELD assignment1
 # need space after/before '[' and ']'
