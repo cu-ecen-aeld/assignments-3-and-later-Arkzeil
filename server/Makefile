@@ -5,7 +5,7 @@ TARGET = aesdsocket.c
 OBJECT = aesdsocket.o
 EXE = aesdsocket
 
-CROSS_COMPILE = aarch64-none-linux-gnu
+CROSS_COMPILE = aarch64-none-linux-gnu-
 DEBUG = N
 
 ifeq ($(CROSS_COMPILE), aarch64-none-linux-gnu-)
